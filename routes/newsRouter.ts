@@ -5,7 +5,7 @@ const newsController = require('../controllers/newsController')
 routes.post('/', newsController.create)
 routes.get('/', newsController.getAll)
 routes.get('/:id', newsController.getOne)
-routes.delete('/', newsController.delete)
+routes.delete('/:id', newsController.delete)
 
 module.exports = routes
 

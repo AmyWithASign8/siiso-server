@@ -23,7 +23,6 @@ const Like_News = sequelize.define('like_news', {
 const Comments = sequelize.define('comments', {
     id:{type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     comment:{type: DataTypes.STRING, allowNull:false},
-    date:{type: DataTypes.DATE, allowNull:false},
 })
 
 User.hasMany(News)
