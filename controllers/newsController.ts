@@ -15,8 +15,7 @@ class NewsController {
             imageUrl.forEach((file: any) => {
                 let fileName = uuid.v4() + '.jpg'
                 file.mv(path.resolve(__dirname, '..', 'static', fileName))
-
-                News_Images.create({imageUrl: fileName, newsId: news.id})
+                News_Images.create({imageUrl: fileName, newsId: news.id, userId: req.user.id})
             })
 
 
@@ -28,16 +27,13 @@ class NewsController {
 
     }
     async getAll(req: any, res: any) {
-        let {userId, limit, page} = req.query
-        page = page | 1;
-        limit = limit | 9;
-        let offset = page * limit - limit;
+        let {userId} = req.query
         let news;
         if (!userId){
-            news = await News.findAndCountAll({limit, offset})
+            news = await News.findAll()
         }
         if (userId){
-            news = await News.findAndCountAll({where: {userId}, limit, offset})
+            news = await News.findAll({where: {userId}})
         }
         return res.json(news)
     }

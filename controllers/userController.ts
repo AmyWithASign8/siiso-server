@@ -1,17 +1,48 @@
 import {ApiErrors} from "../error/ApiError";
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const {User, News} = require('../models/models')
+
+const generateJwt = (id: number, nicname: string, email: string, role: string) => {
+    return jwt.sign(
+        {id, nicname, email, role},
+        process.env.SECRET_KEY,
+        {expiresIn: '24h'}
+    )
+}
 class UserController {
-    async registration(req: any, res: any) {
+    async registration(req: any, res: any, next: any) {
+        const {nickname, email, password, role} = req.body
+        if (!email || !password || !nickname){
+            return next(ApiErrors.badRequest('Неккоректное имя пользователя, email или пароль'))
+        }
+            const candidate = await User.findOne({where: {email, nickname}})
+            if (candidate) {
+                return next(ApiErrors.badRequest('Пользователь с таким email или именем уже существует'))
+            }
+            const hashPassword = await  bcrypt.hash(password, 5)
+            const user = await User.create({nickname, email, role, password: hashPassword})
+
+            const token = generateJwt(user.id, user.nickname, user.email, user.role)
+            return res.json({token})
 
 }
-    async login(req: any, res: any) {
-
+    async login(req: any, res: any, next: any) {
+        const {email, password} = req.body
+        const user = await User.findOne({where: {email}})
+        if (!user) {
+            return next(ApiErrors.internal('Такого пользователя не существует'))
+        }
+        let comparePassword = bcrypt.compareSync(password, user.password)
+        if (!comparePassword){
+            return next(ApiErrors.internal('Указан неверный пароль'))
+        }
+        const token = generateJwt(user.id, user.nickname, user.email, user.password)
+        return res.json({token})
     }
     async check(req: any, res: any, next: any) {
-        const {id} = req.query
-        if (!id){
-            return next(ApiErrors.badRequest('Не задан ID'))
-        }
-        res.json(id)
+        const token = generateJwt(req.user.id, req.user.nickname, req.user.email, req.user.role)
+        return res.json({token})
     }
 }
 module.exports = new UserController()
