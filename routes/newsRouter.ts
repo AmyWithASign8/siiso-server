@@ -5,6 +5,7 @@ const authMiddleware = require('../middleware/authMiddleware')
 
 routes.post('/',authMiddleware, newsController.create)
 routes.get('/', newsController.getAll)
+routes.get('/selected/:id', newsController.getSelected)
 routes.get('/:id', newsController.getOne)
 routes.delete('/:id', newsController.delete)
 
