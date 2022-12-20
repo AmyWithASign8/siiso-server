@@ -3,9 +3,9 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const {User, News} = require('../models/models')
 
-const generateJwt = (id: number, nicname: string, email: string, role: string) => {
+const generateJwt = (id: number, nickname: string, email: string, role: string) => {
     return jwt.sign(
-        {id, nicname, email, role},
+        {id, nickname, email, role},
         process.env.SECRET_KEY,
         {expiresIn: '24h'}
     )
@@ -37,12 +37,36 @@ class UserController {
         if (!comparePassword){
             return next(ApiErrors.internal('Указан неверный пароль'))
         }
-        const token = generateJwt(user.id, user.nickname, user.email, user.password)
+        const token = generateJwt(user.id, user.nickname, user.email, user.role)
         return res.json({token})
     }
     async check(req: any, res: any, next: any) {
         const token = generateJwt(req.user.id, req.user.nickname, req.user.email, req.user.role)
         return res.json({token})
+    }
+    async getOne(req: any, res: any, next: any){
+        try {
+            const {id} = req.params
+            const user = await User.findOne({
+                where: {id}
+            })
+            return res.json(user)
+        }catch (e){
+            next(ApiErrors)
+        }
+    }
+    async updateUser(req: any, res: any, next: any){
+        try {
+            const {id} = req.params
+            const {nickname} = req.body
+            const user = await User.update(
+                {nickname},
+                {where: {id}}
+            )
+            return res.json(user)
+        }catch (e){
+            console.log(e)
+        }
     }
 }
 module.exports = new UserController()

@@ -1,8 +1,6 @@
-const Comments = require('../models/models')
-const Like_News = require('../models/models')
 const path = require('path')
 const uuid = require('uuid')
-const {News, User} = require('../models/models')
+const {News, User, Like_News, Comments} = require('../models/models')
 const {News_Images} = require('../models/models')
 import {ApiErrors} from "../error/ApiError";
 class NewsController {
@@ -12,11 +10,17 @@ class NewsController {
             const {title, description} = req.body;
             const news = await News.create({title, description, userId: req.user.id})
             const {imageUrl} = req.files;
-            imageUrl.forEach((file: any) => {
-                let fileName = uuid.v4() + '.jpg'
-                file.mv(path.resolve(__dirname, '..', 'static', fileName))
-                News_Images.create({imageUrl: fileName, newsId: news.id})
-            })
+           if (imageUrl.length > 1){
+               imageUrl.forEach((file: any) => {
+                   let fileName = uuid.v4() + '.jpg'
+                   file.mv(path.resolve(__dirname, '..', 'static', fileName))
+                   News_Images.create({imageUrl: fileName, newsId: news.id})
+               })
+           }else{
+               let fileName = uuid.v4() + '.jpg'
+               imageUrl.mv(path.resolve(__dirname, '..', 'static', fileName))
+               News_Images.create({imageUrl: fileName, newsId: news.id})
+           }
 
 
             return res.json(news)
@@ -30,7 +34,14 @@ class NewsController {
         let {userId} = req.query
         let news;
         if (!userId){
-            news = await News.findAll()
+            news = await News.findAll(
+            {
+                include:[{
+                    model: News_Images,
+                }, {model: User}],
+            },
+                {order: [["id", "DESC"]]},
+            )
         }
         if (userId){
             news = await News.findAll({where: {userId}})
@@ -41,32 +52,27 @@ class NewsController {
         try{
             const {id} = req.params
             const news = await News.findAll(
-                {where: {userId: id}}
+                { include:[{
+                        model: News_Images
+                    }],
+                    order: [["id", "DESC"]],
+                    where: {userId: id}}
             )
             return res.json(news)
 
         }catch (e){
-            console.log(e)
             next(ApiErrors)
         }
     }
     async getOne(req: any, res: any, next: any) {
        try{
            const {id} = req.params
-           const news = await News.findOne(
-               {where: {id}}
-           )
-           const images = await News_Images.findAll(
-                   {where: {newsId: id}}
-               )
-           const comments = await Comments.findAll(
-               {where: {newsId: id}}
-           )
-           const likes = await Like_News.findAll(
-               {where: {newsId: id}}
+           const news = await News.findAll(
+               {include: [{model: News_Images},{model: User}],
+               where: {id}}
            )
 
-           return res.json(images)
+           return res.json(news)
 
        }catch (e){
            console.log(e)

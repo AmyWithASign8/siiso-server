@@ -1,6 +1,6 @@
 import {ApiErrors} from "../error/ApiError";
 
-const Comments = require('../models/models')
+const {Comments} = require('../models/models')
 class CommentController {
     async create(req: any, res: any, next: any) {
         try{
@@ -13,9 +13,11 @@ class CommentController {
     }
     async getAll(req: any, res: any) {
         const {id} = req.params
-        const comments = await Comments.findAll(
-            {where: {newsId: id}}
-        )
+        let comment;
+            comment = await Comments.findAll(
+                {where: {newsId: id}},
+            )
+        return res.json(comment)
     }
     async delete(req: any, res: any, next: any) {
         const {id} = req.params
