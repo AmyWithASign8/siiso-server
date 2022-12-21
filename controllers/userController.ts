@@ -68,5 +68,17 @@ class UserController {
             console.log(e)
         }
     }
+    async deleteAccount(req: any, res: any, next: any) {
+        try{
+            const {id} = req.params
+            let acconut;
+            acconut = User.destroy({
+                where: {id}
+            })
+            return res.json('Аккаунт был удален')
+        }catch (e){
+            next(ApiErrors)
+        }
+    }
 }
 module.exports = new UserController()

@@ -39,8 +39,7 @@ class NewsController {
                 include:[{
                     model: News_Images,
                 }, {model: User}],
-            },
-                {order: [["id", "DESC"]]},
+            order: [["createdAt" ,"DESC"]]}
             )
         }
         if (userId){
@@ -58,7 +57,9 @@ class NewsController {
                     order: [["id", "DESC"]],
                     where: {userId: id}}
             )
-            return res.json(news)
+            if (news.length > 0 ){
+                return res.json(news)
+            }
 
         }catch (e){
             next(ApiErrors)
@@ -68,7 +69,7 @@ class NewsController {
        try{
            const {id} = req.params
            const news = await News.findAll(
-               {include: [{model: News_Images},{model: User}],
+               {include: [{model: News_Images},{model: User},{model: Like_News},{model: Comments}],
                where: {id}}
            )
 
