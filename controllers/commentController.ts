@@ -4,9 +4,14 @@ const { Comments, User } = require("../models/models");
 class CommentController {
   async create(req: any, res: any, next: any) {
     try {
-      const newsId = req.params;
+      const { newsId } = req.params;
+      console.log(newsId);
       const { comment, userId } = req.body;
-      const comments = Comments.create({ comment, userId, newsId });
+      const comments = await Comments.create({
+        comment,
+        userId,
+        newsId,
+      });
       return res.json(comments);
     } catch (e) {
       next(ApiErrors);
