@@ -5,7 +5,6 @@ class CommentController {
   async create(req: any, res: any, next: any) {
     try {
       const { newsId } = req.params;
-      console.log(newsId);
       const { comment, userId } = req.body;
       const comments = await Comments.create({
         comment,
@@ -27,6 +26,21 @@ class CommentController {
           model: User,
         },
       ],
+      order: [["createdAt", "DESC"]],
+    });
+    return res.json(comment);
+  }
+  async getOne(req: any, res: any) {
+    const { id } = req.params;
+    let comment;
+    comment = await Comments.findOne({
+      where: { id },
+      include: [
+        {
+          model: User,
+        },
+      ],
+      order: [["createdAt", "DESC"]],
     });
     return res.json(comment);
   }
